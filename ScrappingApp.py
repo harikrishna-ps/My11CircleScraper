@@ -4,6 +4,7 @@ import json
 import pandas as pd 
 import numpy as np
 import datetime
+import json
 
 url_get_matches = "https://www.my11circle.com/api/lobbyApi/v1/getMatches"
 url_get_players = "https://www.my11circle.com/api/lobbyApi/matches/v1/getMatchSquad"
@@ -47,12 +48,12 @@ if st.button("Process"):
     for match in data['matches']['1']:
         matchids[match['matchId']] = match['team1']['dName']+ ' vs ' + match['team2']['dName']
     
-    match = []
-    name = []
-    teamName = []
-    roleName = []
-    credits = []
-
+    # match = []
+    # name = []
+    # teamName = []
+    # roleName = []
+    # credits = []
+    match_details = []
     for id in matchids:
         get_match_squard_body = {"matchId":0}
         get_match_squard_body['matchId'] = id
@@ -60,30 +61,54 @@ if st.button("Process"):
         try:
             match_data =  requests.post(url_get_players, get_match_squard_body, headers=headers).json()
             for player in match_data['players']:
-                match.append(matchids[id])
-                name.append(player['name'])
-                teamName.append(player['teamName'])
-                roleName.append(player['roleName'])
-                credits.append(player['credits'])
+                dic_l = {}
+                dic_l['match'] = matchids[id]
+                dic_l['player_name'] = player['name']
+                dic_l['team_name'] = player['teamName']
+                dic_l['player_role'] = player['roleName']
+                dic_l['credits'] = player['credits']
+                match_details.append(dic_l)
+                # match.append(matchids[id])
+                # name.append(player['name'])
+                # teamName.append(player['teamName'])
+                # roleName.append(player['roleName'])
+                # credits.append(player['credits'])
         except:
-            match.append(matchids[id])
-            name.append('')
-            teamName.append('')
-            roleName.append('')
-            credits.append('')
+            dic_l = {}
+            dic_l['match'] = matchids[id]
+            dic_l['player_name'] = ''
+            dic_l['team_name'] = ''
+            dic_l['player_role'] = ''
+            dic_l['credits'] = ''
+            match_details.append(dic_l)
+            # match.append(matchids[id])
+            # name.append('')
+            # teamName.append('')
+            # roleName.append('')
+            # credits.append('')
 
-    df = pd.DataFrame()
-    df['Match'] = match
-    df['Player Name'] = name
-    df['Team Name'] = teamName
-    df['Player Role'] = roleName
-    df['Credits'] = credits
+    # df = pd.DataFrame()
+    # df['Match'] = match
+    # df['Player Name'] = name
+    # df['Team Name'] = teamName
+    # df['Player Role'] = roleName
+    # df['Credits'] = credits
+    match_json = {}
+    match_json['match_details'] = match_details
+    match_json = json.dumps(match_json)
 
-    excel = df.to_csv(index=False).encode('utf-8')
     st.download_button(
-    "Download",
-    excel,
-    "%s_My11CircleData.csv"%datetime.date.today(),
-    "text/csv",
-    key='download-csv'
-    )
+        label="Download JSON",
+        file_name="%s_My11CircleData.json"%datetime.date.today(),
+        mime="application/json",
+        data=match_json,
+        key='')
+
+    # excel = df.to_csv(index=False).encode('utf-8')
+    # st.download_button(
+    # "Download",
+    # excel,
+    # "%s_My11CircleData.csv"%datetime.date.today(),
+    # "text/csv",
+    # key='download-csv'
+    # )
