@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import json
+import datetime
 
 url_get_matches = "https://www.my11circle.com/api/lobbyApi/v1/getMatches"
 url_get_players = "https://www.my11circle.com/api/lobbyApi/matches/v1/getMatchSquad"
@@ -45,8 +46,14 @@ if st.button("Process"):
     data = requests.post(url_get_matches, get_match_body, headers=headers)
     data = data.json()
     matchids = {}
+    matchdates = {}
+    team1 = {}
+    team2 = {}
     for match in data['matches']['1']:
         matchids[match['matchId']] = match['team1']['dName']+ ' vs ' + match['team2']['dName']
+        matchdates[match['matchId']] = match['matchStartTime']
+        team1[match['matchId']] = match['team1']['dName']
+        team2[match['matchId']] = match['team2']['dName']
     
     # match = []
     # name = []
@@ -63,6 +70,9 @@ if st.button("Process"):
             for player in match_data['players']:
                 dic_l = {}
                 dic_l['match'] = matchids[id]
+                dic_l['team1'] = team1[id]
+                dic_l['team2'] = team2[id]
+                dic_l['matchStartTime'] = str(datetime.datetime.fromtimestamp(matchdates[id] / 1e3))
                 dic_l['player_name'] = player['name']
                 dic_l['team_name'] = player['teamName']
                 dic_l['player_role'] = player['roleName']
@@ -74,13 +84,14 @@ if st.button("Process"):
                 # roleName.append(player['roleName'])
                 # credits.append(player['credits'])
         except:
-            dic_l = {}
-            dic_l['match'] = matchids[id]
-            dic_l['player_name'] = ''
-            dic_l['team_name'] = ''
-            dic_l['player_role'] = ''
-            dic_l['credits'] = ''
-            match_details.append(dic_l)
+            pass
+            # dic_l = {}
+            # dic_l['match'] = matchids[id]
+            # dic_l['player_name'] = ''
+            # dic_l['team_name'] = ''
+            # dic_l['player_role'] = ''
+            # dic_l['credits'] = ''
+            # match_details.append(dic_l)
             # match.append(matchids[id])
             # name.append('')
             # teamName.append('')
